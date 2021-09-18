@@ -1,0 +1,127 @@
+import discord
+from discord import message
+from discord.ext.commands import bot
+from discord.player import FFmpegAudio
+from discord.utils import get 
+from discord.ext import commands
+from datetime import datetime, timedelta
+from youtube_dl import YoutubeDL
+from discord import FFmpegAudio
+import youtube_dl
+import random
+#from songs import songAPI
+message_1lastseen =datetime.now()
+message2_lastseen = datetime.now()
+
+bot = commands.Bot(command_prefix='+',help_command=None)
+
+#songInstance = songAPI()
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+
+@bot.command()
+async def test(ctx, *, par):
+    await ctx.channel.send("You typed {0}".format(par))
+
+@bot.event #async/await
+async def on_message(message):
+    global message_lastseen, message2_lastseen
+    if message.content == '!user':
+        await message.channel.send(str(message.author.name) + ' Hello')
+    
+    if message.content == '!name':
+        message_lastseen = datetime.now() + timedelta(seconds=5)
+        await message.channel.send('i am ' + str(bot.user.name))
+               
+#_________________________________________________________TEXE___________OR__________________________MEESAGE________________________________________________________________________________   
+    if message.content.startswith('ข้อความ'):
+        await message.channel.send('ข้อความ')  
+    if message.content.startswith('ข้อความ'):
+        await message.channel.send('ข้อความ')
+    if message.content.startswith('ข้อความ'):
+        await message.channel.send('ข้อความ')
+    if message.content.startswith('ข้อความ'):
+        await message.channel.send('ข้อความ')
+#_________________________________________________________________COMMING SOON______________________________________________________________________________________________________________
+#bot.command() 
+#async def PPKT (ctx):
+    # help
+    # test
+    # send
+    #emBed = discord.Embed(title="groove 2", description="All available bot commands", color=0x42f5a7)
+    #emBed.add_field(name="help", value="Get help command", inline=False)
+    #emBed.add_field(name="test", value="Respond message that you've send", inline=False)
+    #emBed.add_field(name="send", value="Send hello message to user", inline=False)
+    #emBed.set_thumbnail(url='https://media-exp1.licdn.com/dms/image/C560BAQFHd3L0xFcwcw/company-logo_200_200/0/1550868149376?e=2159024400&v=beta&t=LyKtz-V4W8Gfwzi2ZqmikaI9GcUXI3773_aa3F3nIhg')
+    #emBed.set_footer(text='test footer', icon_url='https://media-exp1.licdn.com/dms/image/C560BAQFHd3L0xFcwcw/company-logo_200_200/0/1550868149376?e=2159024400&v=beta&t=LyKtz-V4W8Gfwzi2ZqmikaI9GcUXI3773_aa3F3nIhg')
+    #await ctx.channel.send(embed=emBed)    
+#__________________________________________________________________COMMING ___________________________________________________SOON_____________________________________________________________
+#___________________________________________________________VOICE____________________________________________ยังไม่สมบรูณ___________________________________________BOTเปิดเพลง___________________
+@bot.command()
+async def play(ctx, url):
+    channel = ctx.author.voice.channel
+    voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+    if voice_client == None:
+        ctx.channel.send("Joined")
+        await channel.connect()
+        voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+    YDL_OPTIONS = {'format' : 'bestaudio', 'noplaylist' :'Ture'}
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
+    if not voice_client.is_playing():
+         with youtube_dl(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+            URL = info['formats'][0]['url']
+         voice_client(discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+         voice_client.is_playing()
+    else :
+        await ctx.channel.send("เล่นอยู่อีกช่องใจเย็น")
+        return
+@bot.command()
+async def leave(ctx):
+    await ctx.voice_client.disconnect()
+#_______________________________________________RAMDOM___________________________ZONE_____________________________________
+@bot.command()
+async def givenum(ctx):
+
+    
+    def check(msg):
+        return msg.author == ctx.author and msg.content.isdigit() and \
+               msg.channel == ctx.channel
+
+    await ctx.send("🔢Type a number🔢🟩")
+    msg1 = await bot.wait_for("message", check=check)
+    await ctx.send("🔢Type a second, larger number🔢🟩")
+    msg2 = await bot.wait_for("message", check=check)
+    x = int(msg1.content)
+    y = int(msg2.content)
+    if x < y:
+        value = random.randint(x,y)
+        await ctx.send(f":grinning:You got:grinning:^_^ {value}.")
+    else:
+        await ctx.send(":warning: Please ensure the first number is smaller than the second number.✖✖🟥")
+
+
+    
+    
+   
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bot.run('token')    
