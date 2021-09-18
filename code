@@ -104,24 +104,9 @@ async def givenum(ctx):
         await ctx.send(f":grinning:You got:grinning:^_^ {value}.")
     else:
         await ctx.send(":warning: Please ensure the first number is smaller than the second number.✖✖🟥")
-
-
-    
+  
     
    
-    
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 bot.run('token')    
