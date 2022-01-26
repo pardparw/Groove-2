@@ -1,15 +1,10 @@
 import discord
-from discord import message
-from discord.ext.commands import bot
-from discord.player import FFmpegAudio
-from discord.utils import get 
-from discord.ext import commands
 from datetime import datetime, timedelta
+from discord.ext import commands
+from discord.utils import get
+from discord import FFmpegPCMAudio
 from youtube_dl import YoutubeDL
-from discord import FFmpegAudio
-import youtube_dl
 import random
-#from songs import songAPI
 message_1lastseen =datetime.now()
 message2_lastseen = datetime.now()
 
