@@ -13,4 +13,3 @@ six==1.16.0
 typing-extensions==3.7.4.3
 yarl==1.6.3
 youtube-dl==2021.4.26
-discord-py-slash-command==3.0.3
