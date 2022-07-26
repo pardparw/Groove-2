@@ -7,6 +7,7 @@ from functools import partial
 import itertools
 
 
+
 youtube_dl.utils.bug_reports_message = lambda: ''
 
 ytdl_format_options = {
@@ -25,7 +26,7 @@ ytdl_format_options = {
 
 ffmpeg_options = {
     'options': '-vn',
-    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5" ## song will end if no this line
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 1" ## song will end if no this line
 }
 
 ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
@@ -38,6 +39,7 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
         self.title = data.get('title')
         self.web_url = data.get('webpage_url')
+        
 
         # YTDL info dicts (data) have other useful information you might want
         # https://github.com/rg3/youtube-dl/blob/master/README.md
@@ -62,7 +64,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
         emBed = discord.Embed(title="Music🎶", description=(f'**Added:**{data["title"]}  **to the Queue.**'), color=0x1a91ff)
         emBed.set_footer(text='thank for used BOT', icon_url='https://i.imgur.com/0GkF17z.jpg')
         await ctx.channel.send(embed=emBed) 
-
+        
+        
         if download:
             source = ytdl.prepare_filename(data)
         else:
@@ -118,9 +121,9 @@ class MusicPlayer:
                   async with timeout(600):  # 10 minutes...
                     source = await self.queue.get()
             except asyncio.TimeoutError:
-                del player[self._guild]
                 return await self.destroy(self._guild)
-
+            
+                
             if not isinstance(source, YTDLSource):
                 # Source was probably a stream (not downloaded)
                 # So we should regather to prevent stream expiration
@@ -131,13 +134,15 @@ class MusicPlayer:
                                              f'```css\n[{e}]\n```')
                     continue
 
+
             source.volume = self.volume
             self.current = source
 
             self._guild.voice_client.play(source, after=lambda _: self.bot.loop.call_soon_threadsafe(self.next.set))
-            self.np = await self._channel.send(f'**▶️Now Playing:** `{source.title}` **requested by** '
-                                               f'@{source.requester}')
+            embed = discord.Embed(title='**▶️Now Playing:**', description=f'`{source.title}`**requested by**:{source.requester.mention}', color=0x1a91ff)
+            self.np = await self._channel.send(embed=embed)
             await self.next.wait()
+            
 
             # Make sure the FFmpeg process is cleaned up.
             source.cleanup()
@@ -167,20 +172,20 @@ class songAPI:
         voice_client = get(self.bot.voice_clients, guild=ctx.guild)
         
         if voice_client == None:
-            emoji = '\N{Reversed Hand with Middle Finger Extended}'#Emoji
-            await ctx.message.add_reaction(emoji)#### 
             embed = discord.Embed(title="join in voice channel", color=0x1a91ff)
             await ctx.send(embed=embed)
             await channel.connect()
         
-        
-
-        await ctx.trigger_typing()
+              
 
         _player = self.get_player(ctx)
         source = await YTDLSource.create_source(ctx, search, loop=self.bot.loop, download=False)
+        
+       
+
 
         await _player.queue.put(source)
+        
         
 
     players = {}
@@ -191,11 +196,13 @@ class songAPI:
             player = MusicPlayer(ctx)
             self.players[ctx.guild.id] = player
         
+            
         return player
         
 
     
     async def stop(self, ctx):
+         
         voice_client = get(self.bot.voice_clients, guild=ctx.guild)
         if voice_client == None:
             embed = discord.Embed(title="❌Error to used command", description="connect bot in voice channel first", color=0xFF0000)
@@ -206,6 +213,10 @@ class songAPI:
             embed = discord.Embed(title="❌Error to used command", description="The bot is currently connected to {0}".format(voice_client.channel), color=0xFF0000)
             await ctx.send(embed=embed)
             return
+        if not voice_client or not voice_client.is_connected():
+            return await ctx.send('I am not currently playing anything!')
+
+        
 
         voice_client.stop()
 
@@ -239,8 +250,6 @@ class songAPI:
             return
 
         voice_client.resume()
-        embed = discord.Embed(title="resume song", color=0x1a91ff)
-        await ctx.send(embed=embed)
         return
             
 
@@ -270,17 +279,19 @@ class songAPI:
         del self.players[ctx.guild.id]
         embed = discord.Embed(title="❌Bot leave channel", color=0x1a91ff)
         await ctx.send(embed=embed)
-        
-        
-        
+               
         await ctx.voice_client.disconnect()
-
+        
    
     async def skip(self, ctx):
             voice_client = get(self.bot.voice_clients, guild=ctx.guild)
 
             if voice_client == None or not voice_client.is_connected():
                 embed = discord.Embed(title="❌Error to used command", description="connect bot in voice channel first", color=0xFF0000)
+                await ctx.send(embed=embed)
+                return
+            if voice_client.channel != ctx.author.voice.channel:
+                embed = discord.Embed(title="❌Error to used command", description="The bot is currently connected to {0}".format(voice_client.channel), color=0xFF0000)
                 await ctx.send(embed=embed)
                 return
 
@@ -290,6 +301,30 @@ class songAPI:
                 return
 
             voice_client.stop()
-            embed = discord.Embed(title="@"f'**`{ctx.author}`**: Skipped the song!', color=0x1a91ff)
+            embed = discord.Embed(title=f'{ctx.author}: Skipped the song!', color=0x1a91ff)
             await ctx.send(embed=embed)
-            
+            return
+    
+    
+    async def vloume(self, ctx, *, vol: float):
+        """Change the player volume.
+        Parameters
+        ------------
+        volume: float or int [Required]
+            The volume to set the player to in percentage. This must be between 1 and 100.
+        """
+        vc = ctx.voice_client
+
+        if not vc or not vc.is_connected():
+            return await ctx.send('I am not currently connected to voice!', delete_after=20)
+
+        if not 0 < vol < 101:
+            return await ctx.send('Please enter a value between 1 and 100.')
+
+        player = self.get_player(ctx)
+
+        if vc.source:
+            vc.source.volume = vol / 100
+
+        player.volume = vol / 100
+        await ctx.send(f'**`{ctx.author}`**: Set the volume to **{vol}%**')
