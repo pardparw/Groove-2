@@ -44,4 +44,4 @@ async def verifly(ctx):
         embed = discord.Embed(title="❌โปรดตรวจสอบว่าหมายเลขประจำตัวมเลขที่ถูก.", color=0xFF0000)
         await ctx.send(embed=embed)
 
-bot.run(os.getenv('TOKEN'))  
+bot.run('ODM5NTIzNDAxNjU2MDQxNDkz.GYehnD.yCX0ItpqeDad0Ur85kx7CZSvkguJ_WMetKaYAs')  
